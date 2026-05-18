@@ -1,25 +1,37 @@
 import 'package:flutter/material.dart';
-
-import '../../data/mock_data.dart';
 import '../../widgets/rating_stars.dart';
 import '../../widgets/section_title.dart';
 
 class ServiceDetailScreen extends StatelessWidget {
   static const routeName = '/service-detail';
 
-  final MockService service;
-
-  const ServiceDetailScreen({super.key, required this.service});
+  // TODO: recibir serviceId (int) y cargar con GetServiceDetailUseCase
+  const ServiceDetailScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Datos temporales de placeholder
+    const imageUrl   = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3';
+    const title      = 'Servicio de ejemplo';
+    const provider   = 'Emprendedor';
+    const location   = 'Piedecuesta, Santander';
+    const description = 'Descripción del servicio. Aquí irá la información real cuando se conecte al backend.';
+    const price      = '\$0';
+    const rating     = 0.0;
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
             expandedHeight: 280,
             pinned: true,
-            flexibleSpace: FlexibleSpaceBar(background: Image.network(service.imageUrl, fit: BoxFit.cover)),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade200),
+              ),
+            ),
           ),
           SliverToBoxAdapter(
             child: Padding(
@@ -27,24 +39,29 @@ class ServiceDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(service.title, style: Theme.of(context).textTheme.headlineMedium),
+                  Text(title,
+                      style: Theme.of(context).textTheme.headlineMedium),
                   const SizedBox(height: 10),
-                  Text(service.provider, style: Theme.of(context).textTheme.bodyLarge),
+                  Text(provider,
+                      style: Theme.of(context).textTheme.bodyLarge),
                   const SizedBox(height: 10),
-                  RatingStars(rating: service.rating),
+                  const RatingStars(rating: rating),
                   const SizedBox(height: 18),
-                  Row(
+                  const Row(
                     children: [
-                      const Icon(Icons.location_on_outlined),
-                      const SizedBox(width: 6),
-                      Expanded(child: Text(service.location)),
+                      Icon(Icons.location_on_outlined),
+                      SizedBox(width: 6),
+                      Expanded(child: Text(location)),
                     ],
                   ),
                   const SizedBox(height: 18),
                   Container(
                     padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
-                    child: Text(service.description),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(description),
                   ),
                   const SizedBox(height: 24),
                   const SectionTitle(title: 'Galería'),
@@ -55,16 +72,28 @@ class ServiceDetailScreen extends StatelessWidget {
                       scrollDirection: Axis.horizontal,
                       itemBuilder: (_, __) => ClipRRect(
                         borderRadius: BorderRadius.circular(20),
-                        child: Image.network(service.imageUrl, width: 140, fit: BoxFit.cover),
+                        child: Image.network(
+                          imageUrl,
+                          width: 140,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            width: 140,
+                            color: Colors.grey.shade200,
+                          ),
+                        ),
                       ),
-                      separatorBuilder: (_, __) => const SizedBox(width: 12),
+                      separatorBuilder: (_, __) =>
+                      const SizedBox(width: 12),
                       itemCount: 3,
                     ),
                   ),
                   const SizedBox(height: 26),
                   Container(
                     padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
                     child: Row(
                       children: [
                         Expanded(
@@ -73,10 +102,14 @@ class ServiceDetailScreen extends StatelessWidget {
                             children: [
                               const Text('Precio estimado'),
                               const SizedBox(height: 4),
-                              Text(service.price, style: Theme.of(context).textTheme.titleLarge),
+                              Text(price,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleLarge),
                             ],
                           ),
                         ),
+                        // TODO: navegar al chat con el emprendedor
                         FilledButton.icon(
                           onPressed: () {},
                           icon: const Icon(Icons.chat_bubble_outline),

@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
-
-import '../../data/mock_data.dart';
 import '../../widgets/category_chip.dart';
 import '../../widgets/custom_bottom_nav.dart';
 import '../../widgets/service_card.dart';
 
+const List<String> _placeholderCategories = [
+  'Diseño',
+  'Reparaciones',
+  'Tutorías',
+  'Tecnología',
+  'Hogar',
+  'Belleza',
+];
+
 class SearchScreen extends StatelessWidget {
   static const routeName = '/search';
-
   const SearchScreen({super.key});
 
   @override
@@ -28,15 +34,20 @@ class SearchScreen extends StatelessWidget {
             height: 44,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: categories.length,
-              itemBuilder: (context, index) => CategoryChip(label: categories[index], selected: index == 2),
+              itemCount: _placeholderCategories.length,
+              itemBuilder: (context, index) => CategoryChip(
+                label: _placeholderCategories[index],
+                selected: index == 2,
+              ),
             ),
           ),
           const SizedBox(height: 24),
-          ...mockServices.map((service) => Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: ServiceCard(service: service),
-              )),
+          // TODO: cargar con SearchServicesUseCase
+          const ServiceCard(),
+          const SizedBox(height: 16),
+          const ServiceCard(title: 'Clases de Matemáticas', category: 'Tutorías'),
+          const SizedBox(height: 16),
+          const ServiceCard(title: 'Soporte técnico', category: 'Tecnología'),
         ],
       ),
       bottomNavigationBar: const CustomBottomNav(currentIndex: 1),
