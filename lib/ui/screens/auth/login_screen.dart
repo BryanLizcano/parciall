@@ -1,14 +1,52 @@
 import 'package:flutter/material.dart';
-
+import 'package:provider/provider.dart';
+import '../../../application/providers/auth_provider.dart';
 import '../home/home_screen.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   static const routeName = '/login';
 
   const LoginScreen({super.key});
 
   @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleLogin() async {
+    final provider = context.read<AuthProvider>();
+
+    final success = await provider.login(
+      _usernameController.text.trim(),
+      _passwordController.text,
+    );
+
+    if (!mounted) return;
+
+    if (success) {
+      Navigator.pushReplacementNamed(context, HomeScreen.routeName);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(provider.errorMessage ?? 'Error desconocido')),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // Usamos watch para reconstruir la UI si isLoading cambia
+    final isLoading = context.watch<AuthProvider>().isLoading;
+
     return Scaffold(
       appBar: AppBar(),
       body: SingleChildScrollView(
@@ -23,9 +61,16 @@ class LoginScreen extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 32),
-            const TextField(decoration: InputDecoration(labelText: 'Correo electrónico')),
+            TextField(
+              controller: _usernameController,
+              decoration: const InputDecoration(labelText: 'Nombre de usuario'),
+            ),
             const SizedBox(height: 16),
-            const TextField(obscureText: true, decoration: InputDecoration(labelText: 'Contraseña')),
+            TextField(
+              controller: _passwordController,
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Contraseña'),
+            ),
             const SizedBox(height: 10),
             Align(
               alignment: Alignment.centerRight,
@@ -35,19 +80,15 @@ class LoginScreen extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: () => Navigator.pushReplacementNamed(context, HomeScreen.routeName),
-                child: const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Text('Entrar')),
+                onPressed: isLoading ? null : _handleLogin,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: isLoading
+                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Text('Entrar'),
+                ),
               ),
             ),
-            const SizedBox(height: 28),
-            const Row(
-              children: [
-                Expanded(child: Divider()),
-                Padding(padding: EdgeInsets.symmetric(horizontal: 10), child: Text('o continúa con')),
-                Expanded(child: Divider()),
-              ],
-            ),
-            const SizedBox(height: 24),
             Row(
               children: [
                 Expanded(
