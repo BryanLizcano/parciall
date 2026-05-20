@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../constants/api_config.dart';
 import '../../domain/model/auth_session.dart';
 import '../../domain/model/role.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -9,7 +10,6 @@ import '../../data/dto/auth_request_dto.dart';
 import '../../data/dto/auth_response_dto.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  final String baseUrl = 'http://192.168.101.8:8080/authenticate';
   final FlutterSecureStorage _storage;
   AuthRepositoryImpl({FlutterSecureStorage? storage})
       : _storage = storage ?? const FlutterSecureStorage();
@@ -25,7 +25,7 @@ class AuthRepositoryImpl implements AuthRepository {
     final dto = LoginRequestDto(username: username, password: password);
 
     final response = await http.post(
-      Uri.parse('$baseUrl/login'),
+      Uri.parse(ApiConfig.login),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(dto.toJson()),
     );
@@ -48,7 +48,7 @@ class AuthRepositoryImpl implements AuthRepository {
     final dto = RegisterRequestDto(username: username, password: password, role: role);
 
     final response = await http.post(
-      Uri.parse('$baseUrl/register'),
+      Uri.parse(ApiConfig.register),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(dto.toJson()),
     );

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../../application/providers/user_provider.dart';
 import '../../widgets/category_chip.dart';
 import '../../widgets/custom_bottom_nav.dart';
 import '../../widgets/section_title.dart';
@@ -20,6 +22,9 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Escuchamos los datos del usuario logueado desde el UserProvider
+    final user = context.watch<UserProvider>().ownProfile;
+
     return Scaffold(
       body: SafeArea(
         child: ListView(
@@ -31,18 +36,25 @@ class HomeScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // TODO: mostrar nombre real del usuario autenticado
-                      Text('Hola',
-                          style: Theme.of(context).textTheme.bodyLarge),
+                      // Mostrar nombre real del usuario autenticado o fallback
+                      Text(
+                        'Hola, ${user?.fullName ?? user?.username ?? 'Usuario'}',
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
                       const SizedBox(height: 4),
                       Text('Encuentra servicios cerca de ti',
                           style: Theme.of(context).textTheme.titleLarge),
                     ],
                   ),
                 ),
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 24,
-                  child: Icon(Icons.person),
+                  backgroundImage: user?.photoUrl != null && user!.photoUrl!.isNotEmpty
+                      ? NetworkImage(user.photoUrl!)
+                      : null,
+                  child: user?.photoUrl == null || user!.photoUrl!.isEmpty
+                      ? const Icon(Icons.person)
+                      : null,
                 ),
               ],
             ),
