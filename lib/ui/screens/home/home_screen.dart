@@ -16,13 +16,26 @@ const List<String> _placeholderCategories = [
   'Belleza',
 ];
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   static const routeName = '/home';
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // HU-04: Cargamos el perfil del usuario autenticado al entrar al home
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<UserProvider>().loadOwnProfile();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Escuchamos los datos del usuario logueado desde el UserProvider
     final user = context.watch<UserProvider>().ownProfile;
 
     return Scaffold(
@@ -36,9 +49,9 @@ class HomeScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Mostrar nombre real del usuario autenticado o fallback
                       Text(
-                        'Hola, ${user?.fullName ?? user?.username ?? 'Usuario'}',
+                        // Ahora muestra el nombre real una vez cargue; mientras tanto "..."
+                        'Hola, ${user?.fullName ?? user?.username ?? '...'}',
                         style: Theme.of(context).textTheme.bodyLarge,
                       ),
                       const SizedBox(height: 4),

@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../constants/api_config.dart';
@@ -8,37 +10,82 @@ import '../../domain/repositories/image_repository.dart';
 class ImageRepositoryImpl implements ImageRepository {
   final FlutterSecureStorage _storage;
 
-  ImageRepositoryImpl({required FlutterSecureStorage storage}) : _storage = storage;
+  ImageRepositoryImpl({required FlutterSecureStorage storage})
+      : _storage = storage;
+
+  /// Detecta el Content-Type correcto.
+  /// image_picker en Android devuelve paths temporales con nombres UUID
+  /// sin extensión legible, entonces fromPath() no puede inferir el mimetype
+  /// y envía application/octet-stream → el backend rechaza con 400.
+  /// Solución: extensión primero, magic bytes como respaldo.
+  MediaType _detectMediaType(String filePath) {
+    final ext = filePath.split('.').last.toLowerCase();
+    switch (ext) {
+      case 'jpg':
+      case 'jpeg':
+        return MediaType('image', 'jpeg');
+      case 'png':
+        return MediaType('image', 'png');
+      case 'webp':
+        return MediaType('image', 'webp');
+      default:
+      // Respaldo: magic bytes
+        try {
+          final bytes = File(filePath).readAsBytesSync();
+          if (bytes.length >= 3 &&
+              bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF) {
+            return MediaType('image', 'jpeg'); // FF D8 FF → JPEG
+          }
+          if (bytes.length >= 4 &&
+              bytes[0] == 0x89 && bytes[1] == 0x50 &&
+              bytes[2] == 0x4E && bytes[3] == 0x47) {
+            return MediaType('image', 'png'); // 89 50 4E 47 → PNG
+          }
+          if (bytes.length >= 12 &&
+              bytes[0] == 0x52 && bytes[1] == 0x49 &&
+              bytes[8] == 0x57 && bytes[9] == 0x45 &&
+              bytes[10] == 0x42 && bytes[11] == 0x50) {
+            return MediaType('image', 'webp'); // RIFF....WEBP
+          }
+        } catch (_) {
+          // No se pudo leer — fallback
+        }
+        return MediaType('image', 'jpeg'); // galería casi siempre es jpeg
+    }
+  }
 
   @override
   Future<String> upload(String filePath) async {
     final token = await _storage.read(key: 'jwt_token');
+    final mediaType = _detectMediaType(filePath);
 
-    // HU-20 CA-1: Petición de tipo multipart/form-data
-    final request = http.MultipartRequest('POST', Uri.parse(ApiConfig.uploadImage));
+    final request =
+    http.MultipartRequest('POST', Uri.parse(ApiConfig.uploadImage));
 
-    // Adjuntamos el token de autenticación
-    request.headers.addAll({
-      'Authorization': 'Bearer $token',
-    });
+    request.headers['Authorization'] = 'Bearer $token';
 
-    // Añadimos el archivo usando el campo "file" requerido por el backend
+    // Forzamos el contentType para que Spring Boot lo acepte correctamente
     request.files.add(
-      await http.MultipartFile.fromPath('file', filePath),
+      await http.MultipartFile.fromPath(
+        'file',
+        filePath,
+        contentType: mediaType,
+      ),
     );
 
-    // Enviamos la petición de flujo (streamed)
     final streamedResponse = await request.send();
-    // Convertimos la respuesta del stream a una respuesta común y corriente
     final response = await http.Response.fromStream(streamedResponse);
 
     if (response.statusCode == 201) {
       final Map<String, dynamic> responseData = jsonDecode(response.body);
-      return responseData['url'] as String; // Retornamos la URL pública devuelta
+      return responseData['url'] as String;
     } else {
-      // Manejo de errores según las reglas del backend (Formato inválido, > 5MB, etc.)
-      final errorBody = jsonDecode(response.body);
-      throw Exception(errorBody['message'] ?? 'Error al subir la imagen al servidor');
+      Map<String, dynamic>? errorBody;
+      try {
+        errorBody = jsonDecode(response.body);
+      } catch (_) {}
+      throw Exception(
+          errorBody?['message'] ?? 'Error al subir la imagen (${response.statusCode})');
     }
   }
 
@@ -46,15 +93,11 @@ class ImageRepositoryImpl implements ImageRepository {
   Future<void> delete(String filename) async {
     final token = await _storage.read(key: 'jwt_token');
 
-    // HU-20 CA-10: DELETE requiere JWT y el filename en la URL
     final response = await http.delete(
       Uri.parse(ApiConfig.imageUrl(filename)),
-      headers: {
-        'Authorization': 'Bearer $token',
-      },
+      headers: {'Authorization': 'Bearer $token'},
     );
 
-    // El backend responde 204 No Content si se eliminó exitosamente
     if (response.statusCode != 204) {
       if (response.statusCode == 403) {
         throw Exception('No tienes permisos para eliminar esta imagen');

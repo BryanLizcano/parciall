@@ -1,9 +1,22 @@
 import 'package:flutter/material.dart';
+import '../screens/chat/chat_list_screen.dart';
+import '../screens/home/home_screen.dart';
+import '../screens/home/map_screen.dart';
+import '../screens/home/search_screen.dart';
+import '../screens/profile/profile_screen.dart';
 
 class CustomBottomNav extends StatelessWidget {
   final int currentIndex;
 
   const CustomBottomNav({super.key, required this.currentIndex});
+
+  static const List<String> _routes = [
+    HomeScreen.routeName,
+    SearchScreen.routeName,
+    MapScreen.routeName,
+    ChatListScreen.routeName,
+    ProfileScreen.routeName,
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -12,6 +25,11 @@ class CustomBottomNav extends StatelessWidget {
       selectedIndex: currentIndex,
       backgroundColor: Colors.white,
       indicatorColor: const Color(0xFFE0E7FF),
+      onDestinationSelected: (index) {
+        // No navegamos si ya estamos en esa pantalla
+        if (index == currentIndex) return;
+        Navigator.pushReplacementNamed(context, _routes[index]);
+      },
       destinations: const [
         NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Inicio'),
         NavigationDestination(icon: Icon(Icons.search), label: 'Buscar'),

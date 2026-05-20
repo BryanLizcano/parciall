@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:parcial/constants/app_constants.dart';
 import 'package:provider/provider.dart';
 
+import '../../../application/providers/auth_provider.dart';
 import '../../../application/providers/user_provider.dart';
 import '../../../domain/model/role.dart';
+import '../auth/welcome_screen.dart';
 import '../services/my_services_screen.dart';
 import '../../widgets/custom_bottom_nav.dart';
 import 'edit_profile_screen.dart';
@@ -19,7 +21,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-
   @override
   void initState() {
     super.initState();
@@ -27,6 +28,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<UserProvider>().loadOwnProfile();
     });
+  }
+
+  Future<void> _confirmLogout() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cerrar sesión'),
+        content: const Text('¿Estás seguro que deseas cerrar sesión?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Cerrar sesión'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      await context.read<AuthProvider>().logout();
+      if (mounted) {
+        // Limpiamos el stack completo y vamos al welcome (HU-03 CA-3)
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          WelcomeScreen.routeName,
+              (route) => false,
+        );
+      }
+    }
   }
 
   @override
@@ -45,43 +78,81 @@ class _ProfileScreenState extends State<ProfileScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(28)),
+              decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(28)),
               child: Column(
                 children: [
                   CircleAvatar(
                     radius: 42,
-                    backgroundImage: NetworkImage(user?.photoUrl != null && user!.photoUrl!.isNotEmpty
-                        ? user.photoUrl!
-                        : AppConstants.defaultProfileImage),
+                    backgroundImage: NetworkImage(
+                      user?.photoUrl != null && user!.photoUrl!.isNotEmpty
+                          ? user.photoUrl!
+                          : AppConstants.defaultProfileImage,
+                    ),
                   ),
                   const SizedBox(height: 14),
-                  // Mostramos nombre o el username si aún no se ha configurado el perfil
                   Text(
-                      user?.fullName ?? user?.username ?? 'Usuario',
-                      style: Theme.of(context).textTheme.titleLarge
+                    user?.fullName ?? user?.username ?? 'Usuario',
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 6),
-                  // Mapeo dinámico del Rol
-                  Text(user?.role == Role.entrepreneur
-                      ? 'Emprendedor${user?.description != null ? ' · ' + user!.description! : ''}'
-                      : 'Cliente'),
+                  // Badge de rol (HU-04 CA-3)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: user?.role == Role.entrepreneur
+                          ? const Color(0xFFEDE9FE)
+                          : const Color(0xFFDCFCE7),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      user?.role == Role.entrepreneur
+                          ? 'Emprendedor'
+                          : 'Cliente',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: user?.role == Role.entrepreneur
+                            ? const Color(0xFF7C3AED)
+                            : const Color(0xFF16A34A),
+                      ),
+                    ),
+                  ),
+                  if (user?.description != null &&
+                      user!.description!.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      user.description!,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
                   const SizedBox(height: 6),
-                  Text(user?.address ?? 'Ubicación no configurada'),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.location_on_outlined, size: 16),
+                      const SizedBox(width: 4),
+                      Text(user?.address ?? 'Ubicación no configurada'),
+                    ],
+                  ),
                   const SizedBox(height: 20),
                   Row(
                     children: [
                       Expanded(
                         child: OutlinedButton(
-                          onPressed: () => Navigator.pushNamed(context, EditProfileScreen.routeName),
+                          onPressed: () => Navigator.pushNamed(
+                              context, EditProfileScreen.routeName),
                           child: const Text('Editar perfil'),
                         ),
                       ),
-                      // El botón "Mis servicios" solo tiene sentido si eres Emprendedor
                       if (user?.role == Role.entrepreneur) ...[
                         const SizedBox(width: 12),
                         Expanded(
                           child: FilledButton(
-                            onPressed: () => Navigator.pushNamed(context, MyServicesScreen.routeName),
+                            onPressed: () => Navigator.pushNamed(
+                                context, MyServicesScreen.routeName),
                             child: const Text('Mis servicios'),
                           ),
                         ),
@@ -93,18 +164,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 20),
             _ProfileOption(
-                icon: Icons.star_outline,
-                title: 'Reseñas y calificaciones',
-                onTap: () => Navigator.pushNamed(context, ReviewsScreen.routeName)
+              icon: Icons.star_outline,
+              title: 'Reseñas y calificaciones',
+              onTap: () =>
+                  Navigator.pushNamed(context, ReviewsScreen.routeName),
             ),
-            _ProfileOption(icon: Icons.settings_outlined, title: 'Preferencias', onTap: () {}),
-            _ProfileOption(icon: Icons.help_outline, title: 'Ayuda', onTap: () {}),
             _ProfileOption(
-                icon: Icons.logout,
-                title: 'Cerrar sesión',
-                onTap: () {
-                  // TODO: Invocar tu AuthProvider para limpiar almacenamiento y redirigir al Welcome
-                }
+                icon: Icons.settings_outlined,
+                title: 'Preferencias',
+                onTap: () {}),
+            _ProfileOption(
+                icon: Icons.help_outline, title: 'Ayuda', onTap: () {}),
+            _ProfileOption(
+              icon: Icons.logout,
+              title: 'Cerrar sesión',
+              color: Colors.red.shade600,
+              onTap: _confirmLogout, // HU-03: limpia token y navega a welcome
             ),
           ],
         ),
@@ -118,8 +193,14 @@ class _ProfileOption extends StatelessWidget {
   final IconData icon;
   final String title;
   final VoidCallback onTap;
+  final Color? color;
 
-  const _ProfileOption({required this.icon, required this.title, required this.onTap});
+  const _ProfileOption({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -127,8 +208,8 @@ class _ProfileOption extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         onTap: onTap,
-        leading: Icon(icon),
-        title: Text(title),
+        leading: Icon(icon, color: color),
+        title: Text(title, style: TextStyle(color: color)),
         trailing: const Icon(Icons.chevron_right),
       ),
     );
