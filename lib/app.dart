@@ -13,6 +13,7 @@ import 'ui/screens/profile/reviews_screen.dart';
 import 'ui/screens/services/create_service_screen.dart';
 import 'ui/screens/services/my_services_screen.dart';
 import 'ui/screens/services/service_detail_screen.dart';
+import 'ui/screens/splash/splash_screen.dart';
 import 'ui/theme/app_theme.dart';
 
 class EmprendeApp extends StatelessWidget {
@@ -24,8 +25,9 @@ class EmprendeApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Conecta Local',
       theme: AppTheme.lightTheme,
-      initialRoute: WelcomeScreen.routeName,
+      initialRoute: SplashScreen.routeName, // '/' apunta al splash
       routes: {
+        SplashScreen.routeName:       (_) => const SplashScreen(),
         WelcomeScreen.routeName:      (_) => const WelcomeScreen(),
         LoginScreen.routeName:        (_) => const LoginScreen(),
         RegisterScreen.routeName:     (_) => const RegisterScreen(),
@@ -41,13 +43,11 @@ class EmprendeApp extends StatelessWidget {
       },
       onGenerateRoute: (settings) {
         if (settings.name == ServiceDetailScreen.routeName) {
-          // Por ahora navega al detalle sin argumentos reales
           return MaterialPageRoute(
             builder: (_) => const ServiceDetailScreen(),
           );
         }
         if (settings.name == ChatDetailScreen.routeName) {
-          // Por ahora navega al chat sin argumentos reales
           return MaterialPageRoute(
             builder: (_) => const ChatDetailScreen(),
           );

@@ -1,53 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-import '../../../application/providers/auth_provider.dart';
-import '../home/home_screen.dart';
 import 'login_screen.dart';
 import 'register_screen.dart';
 
-class WelcomeScreen extends StatefulWidget {
-  static const routeName = '/';
+/// WelcomeScreen ya NO redirige automáticamente al home.
+/// Esa lógica vive en SplashScreen. Esta pantalla es solo el landing
+/// de bienvenida con los botones de login y registro.
+class WelcomeScreen extends StatelessWidget {
+  static const routeName = '/welcome';
 
   const WelcomeScreen({super.key});
 
   @override
-  State<WelcomeScreen> createState() => _WelcomeScreenState();
-}
-
-class _WelcomeScreenState extends State<WelcomeScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // Revisamos si ya hay sesión guardada (token en FlutterSecureStorage).
-    // checkAuthStatus() ya se llamó en main.dart al crear el provider,
-    // pero puede que todavía esté corriendo cuando se construye este widget.
-    // Esperamos un frame y luego evaluamos.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _redirectIfLoggedIn());
-  }
-
-  void _redirectIfLoggedIn() {
-    final session = context.read<AuthProvider>().currentSession;
-    if (session != null && mounted) {
-      // Ya hay token válido en storage → saltamos directo al home
-      Navigator.pushReplacementNamed(context, HomeScreen.routeName);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    // Escuchamos al provider: si checkAuthStatus() termina DESPUÉS de que
-    // se construyó el widget (caso habitual en cold start), reaccionamos igual.
-    final authProvider = context.watch<AuthProvider>();
-    if (authProvider.currentSession != null) {
-      // Usamos addPostFrameCallback para no navegar durante build()
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          Navigator.pushReplacementNamed(context, HomeScreen.routeName);
-        }
-      });
-    }
-
     return Scaffold(
       body: SafeArea(
         child: Padding(
