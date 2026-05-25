@@ -98,11 +98,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   children: [
                     CircleAvatar(
                       radius: 42,
-                      backgroundImage: NetworkImage(
-                        user?.photoUrl != null && user!.photoUrl!.isNotEmpty
-                            ? user.photoUrl!
-                            : AppConstants.defaultProfileImage,
-                      ),
+                      backgroundImage: user?.photoUrl != null && user!.photoUrl!.isNotEmpty
+                          ? NetworkImage(user.photoUrl!)
+                          : null,
+
+                      child: user?.photoUrl == null || user!.photoUrl!.isEmpty
+                          ? const Icon(Icons.person, size: 42) // Ajusta el tamaño para que quede bien con el radius 42
+                          : null,
                     ),
                     const SizedBox(height: 14),
                     Text(

@@ -71,19 +71,35 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<String?> getStoredToken() async {
-    return await _storage.read(key: _tokenKey);
+    try {
+      return await _storage.read(key: _tokenKey);
+    } catch (_) {
+      await _clearStorage();
+      return null;
+    }
   }
 
   @override
   Future<Role?> getStoredRole() async {
-    final roleString = await _storage.read(key: _roleKey);
-    if (roleString == 'ENTREPRENEUR') return Role.entrepreneur;
-    if (roleString == 'CLIENT') return Role.client;
-    return null;
+    try {
+      final roleString = await _storage.read(key: _roleKey);
+      if (roleString == 'ENTREPRENEUR') return Role.entrepreneur;
+      if (roleString == 'CLIENT') return Role.client;
+      return null;
+    } catch (_) {
+      await _clearStorage();
+      return null;
+    }
   }
 
   Future<void> _saveSessionLocally(AuthResponseDto dto) async {
     await _storage.write(key: _tokenKey, value: dto.token);
     await _storage.write(key: _roleKey, value: dto.role.name.toUpperCase());
+  }
+
+  Future<void> _clearStorage() async {
+    try {
+      await _storage.deleteAll();
+    } catch (_) {}
   }
 }

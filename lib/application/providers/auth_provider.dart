@@ -19,12 +19,16 @@ class AuthProvider extends ChangeNotifier {
 
   // Verifica si el usuario ya había iniciado sesión al abrir la app
   Future<void> checkAuthStatus() async {
-    final token = await _authRepository.getStoredToken();
-    final role = await _authRepository.getStoredRole();
+    try {
+      final token = await _authRepository.getStoredToken();
+      final role = await _authRepository.getStoredRole();
 
-    if (token != null && role != null) {
-      _currentSession = AuthSession(token: token, username: 'Usuario', role: role);
-      notifyListeners();
+      if (token != null && role != null) {
+        _currentSession = AuthSession(token: token, username: 'Usuario', role: role);
+        notifyListeners();
+      }
+    } catch (_) {
+      _currentSession = null;
     }
   }
 

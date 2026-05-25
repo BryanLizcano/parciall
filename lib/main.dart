@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import 'app.dart';
+import 'application/providers/auth_provider.dart';
+import 'application/providers/category_provider.dart';
+import 'application/providers/image_provider.dart' as image;
+import 'application/providers/service_provider.dart';
 import 'application/providers/user_provider.dart';
 import 'injection.dart';
-import 'application/providers/auth_provider.dart';
-import 'application/providers/image_provider.dart' as image;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +25,14 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (_) => sl<image.ImageProvider>(),
+        ),
+        // Singleton: el caché de categorías vive durante toda la sesión (HU-15 CA-1)
+        ChangeNotifierProvider(
+          create: (_) => sl<CategoryProvider>(),
+        ),
+        // Factory: se crea una instancia fresca; el Provider la gestiona
+        ChangeNotifierProvider(
+          create: (_) => sl<ServiceProvider>(),
         ),
       ],
       child: const EmprendeApp(),

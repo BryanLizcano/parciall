@@ -22,14 +22,28 @@ class ApiConfig {
   // =========================================================================
   // MÓDULO 3 y 4: Gestión de Servicios, Búsqueda y Geolocalización
   // =========================================================================
-  static const String services = '$baseUrl/services'; // HU-08 y HU-13
-  static const String servicesMap = '$baseUrl/services/map'; // HU-14
 
-  /// HU-09, HU-10, HU-12: Operaciones sobre un servicio específico (Editar, Eliminar, Detalle)
+  /// HU-07 (POST crear) y HU-13 (GET buscar servicios activos)
+  static const String services = '$baseUrl/services';
+
+  /// HU-08: Servicios propios del emprendedor autenticado
+  static const String myServices = '$baseUrl/services/my-services';
+
+  /// HU-14: Marcadores del mapa dentro de un radio
+  static const String servicesMap = '$baseUrl/services/map';
+
+  /// HU-09, HU-10, HU-12: Operaciones sobre un servicio específico
   static String serviceDetail(int id) => '$baseUrl/services/$id';
 
   /// HU-11: Cambiar estado activo/inactivo de un servicio
   static String serviceStatus(int id) => '$baseUrl/services/$id/status';
+
+  // =========================================================================
+  // MÓDULO 4 (extra): Categorías
+  // =========================================================================
+
+  /// HU-15: Listado de categorías (endpoint público)
+  static const String categories = '$baseUrl/categories';
 
   // =========================================================================
   // MÓDULO 5: Chat Privado
