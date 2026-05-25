@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
@@ -25,12 +26,15 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
   final _addressController = TextEditingController();
 
   int? _selectedCategoryId;
-  // Lista de URLs ya subidas al backend (HU-20)
   final List<String> _imageUrls = [];
   final ImagePicker _picker = ImagePicker();
   bool _isUploadingImage = false;
 
-  // Modo edición: si se pasa un serviceId por arguments, cargamos sus datos
+  // GPS
+  double? _latitude;
+  double? _longitude;
+  bool _isGettingLocation = false;
+
   int? _editingServiceId;
   bool _isEditMode = false;
 
@@ -38,10 +42,7 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Carga categorías desde caché o backend (HU-15)
       context.read<CategoryProvider>().loadCategories();
-
-      // Modo edición: pre-rellenamos si hay id en arguments
       final args = ModalRoute.of(context)?.settings.arguments;
       if (args is int) {
         _editingServiceId = args;
@@ -60,6 +61,8 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
       _priceController.text = selected.price?.toStringAsFixed(0) ?? '';
       _addressController.text = selected.address ?? '';
       _selectedCategoryId = selected.category.id;
+      _latitude = selected.latitude;
+      _longitude = selected.longitude;
       _imageUrls
         ..clear()
         ..addAll(selected.imageUrls);
@@ -75,14 +78,76 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
     super.dispose();
   }
 
-  // ── Imagen: subir (HU-20) ─────────────────────────────────────────────────
+  // ── GPS ───────────────────────────────────────────────────────────────────
+
+  Future<void> _getCurrentLocation() async {
+    setState(() => _isGettingLocation = true);
+    try {
+      // 1. Verificar si el servicio está habilitado
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _showError('El GPS está desactivado. Actívalo en la configuración del dispositivo.');
+        return;
+      }
+
+      // 2. Verificar/pedir permisos
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          _showError('Permiso de ubicación denegado.');
+          return;
+        }
+      }
+      if (permission == LocationPermission.deniedForever) {
+        _showError('Permiso de ubicación denegado permanentemente. Ve a Configuración > Aplicaciones para habilitarlo.');
+        return;
+      }
+
+      // 3. Obtener posición
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
+        ),
+      );
+
+      setState(() {
+        _latitude = position.latitude;
+        _longitude = position.longitude;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Ubicación capturada: ${position.latitude.toStringAsFixed(5)}, ${position.longitude.toStringAsFixed(5)}',
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      _showError('No se pudo obtener la ubicación: ${e.toString()}');
+    } finally {
+      if (mounted) setState(() => _isGettingLocation = false);
+    }
+  }
+
+  void _clearLocation() {
+    setState(() {
+      _latitude = null;
+      _longitude = null;
+    });
+  }
+
+  // ── Imagen ────────────────────────────────────────────────────────────────
 
   Future<void> _addImage() async {
     if (_imageUrls.length >= 5) {
       _showError('Máximo 5 imágenes por servicio.');
       return;
     }
-
     final XFile? file = await _picker.pickImage(
       source: ImageSource.gallery,
       imageQuality: 80,
@@ -90,10 +155,8 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
     if (file == null) return;
 
     setState(() => _isUploadingImage = true);
-
     final imageProvider = context.read<custom.ImageProvider>();
     final url = await imageProvider.uploadImage(file.path);
-
     if (!mounted) return;
     setState(() => _isUploadingImage = false);
 
@@ -104,20 +167,16 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
     }
   }
 
-  // ── Imagen: eliminar (HU-20) ──────────────────────────────────────────────
-
   Future<void> _removeImage(int index) async {
     final url = _imageUrls[index];
     final filename = url.split('/').last;
-
     final imageProvider = context.read<custom.ImageProvider>();
-    // Eliminación silenciosa: quitamos de la lista aunque falle el backend
     await imageProvider.deleteImage(filename);
     if (!mounted) return;
     setState(() => _imageUrls.removeAt(index));
   }
 
-  // ── Guardar / Publicar ────────────────────────────────────────────────────
+  // ── Guardar ───────────────────────────────────────────────────────────────
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
@@ -128,23 +187,23 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
 
     final serviceProvider = context.read<ServiceProvider>();
     final price = double.tryParse(_priceController.text.trim());
+    final address = _addressController.text.trim().isEmpty
+        ? null
+        : _addressController.text.trim();
 
     if (_isEditMode && _editingServiceId != null) {
-      // HU-09: Editar servicio existente
       final success = await serviceProvider.updateService(
         id: _editingServiceId!,
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         categoryId: _selectedCategoryId!,
         price: price,
-        address: _addressController.text.trim().isEmpty
-            ? null
-            : _addressController.text.trim(),
+        address: address,
+        latitude: _latitude,
+        longitude: _longitude,
         imageUrls: _imageUrls,
       );
-
       if (!mounted) return;
-
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Servicio actualizado correctamente.')),
@@ -154,25 +213,21 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
         _showError(serviceProvider.errorMessage ?? 'Error al actualizar el servicio.');
       }
     } else {
-      // HU-07: Crear nuevo servicio
       final created = await serviceProvider.createService(
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
         categoryId: _selectedCategoryId!,
         price: price,
-        address: _addressController.text.trim().isEmpty
-            ? null
-            : _addressController.text.trim(),
+        address: address,
+        latitude: _latitude,
+        longitude: _longitude,
         imageUrls: _imageUrls,
       );
-
       if (!mounted) return;
-
       if (created != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Servicio publicado exitosamente.')),
         );
-        // HU-07 CA-6: navegar al detalle del servicio recién creado
         await serviceProvider.loadServiceDetail(created.id);
         if (mounted) {
           Navigator.pushReplacementNamed(context, ServiceDetailScreen.routeName);
@@ -185,10 +240,7 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
   }
 
@@ -197,7 +249,10 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
     final categoryProvider = context.watch<CategoryProvider>();
     final serviceProvider = context.watch<ServiceProvider>();
     final imageProvider = context.watch<custom.ImageProvider>();
-    final isBusy = serviceProvider.isLoading || _isUploadingImage || imageProvider.isLoading;
+    final isBusy = serviceProvider.isLoading ||
+        _isUploadingImage ||
+        imageProvider.isLoading ||
+        _isGettingLocation;
 
     return Scaffold(
       appBar: AppBar(
@@ -208,7 +263,7 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
           children: [
-            // ── Galería de imágenes (HU-07 CA-3, HU-20) ─────────────────
+            // ── Galería de imágenes ──────────────────────────────────────
             _ImageGallerySection(
               imageUrls: _imageUrls,
               isUploading: _isUploadingImage,
@@ -229,26 +284,20 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
             ),
             const SizedBox(height: 16),
 
-            // ── Categoría (HU-15) ─────────────────────────────────────────
+            // ── Categoría ─────────────────────────────────────────────────
             categoryProvider.isLoading
-                ? const Center(
-              heightFactor: 2,
-              child: CircularProgressIndicator(),
-            )
+                ? const Center(heightFactor: 2, child: CircularProgressIndicator())
                 : DropdownButtonFormField<int>(
               value: _selectedCategoryId,
               decoration: const InputDecoration(labelText: 'Categoría *'),
               items: categoryProvider.categories
-                  .map(
-                    (cat) => DropdownMenuItem(
-                  value: cat.id,
-                  child: Text(cat.name),
-                ),
-              )
+                  .map((cat) => DropdownMenuItem(
+                value: cat.id,
+                child: Text(cat.name),
+              ))
                   .toList(),
               onChanged: (val) => setState(() => _selectedCategoryId = val),
-              validator: (v) =>
-              v == null ? 'Selecciona una categoría.' : null,
+              validator: (v) => v == null ? 'Selecciona una categoría.' : null,
             ),
             if (categoryProvider.errorMessage != null)
               Padding(
@@ -260,8 +309,7 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
                       style: const TextStyle(color: Colors.red, fontSize: 13),
                     ),
                     TextButton(
-                      onPressed: () =>
-                          categoryProvider.loadCategories(force: true),
+                      onPressed: () => categoryProvider.loadCategories(force: true),
                       child: const Text('Reintentar'),
                     ),
                   ],
@@ -269,7 +317,7 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
               ),
             const SizedBox(height: 16),
 
-            // ── Precio (opcional) ─────────────────────────────────────────
+            // ── Precio ────────────────────────────────────────────────────
             TextFormField(
               controller: _priceController,
               keyboardType: TextInputType.number,
@@ -278,22 +326,22 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
                 prefixText: '\$ ',
               ),
               validator: (v) {
-                if (v == null || v.trim().isEmpty) return null; // opcional
-                if (double.tryParse(v.trim()) == null) {
-                  return 'Ingresa un número válido.';
-                }
+                if (v == null || v.trim().isEmpty) return null;
+                if (double.tryParse(v.trim()) == null) return 'Ingresa un número válido.';
                 return null;
               },
             ),
             const SizedBox(height: 16),
 
-            // ── Dirección (opcional) ──────────────────────────────────────
-            TextFormField(
-              controller: _addressController,
-              decoration: const InputDecoration(
-                labelText: 'Dirección / Ciudad (opcional)',
-                prefixIcon: Icon(Icons.location_on_outlined),
-              ),
+            // ── Ubicación con GPS ─────────────────────────────────────────
+            _LocationSection(
+              addressController: _addressController,
+              latitude: _latitude,
+              longitude: _longitude,
+              isGettingLocation: _isGettingLocation,
+              isBusy: isBusy,
+              onGetLocation: _getCurrentLocation,
+              onClearLocation: _clearLocation,
             ),
             const SizedBox(height: 16),
 
@@ -325,9 +373,7 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
                     height: 20,
                     width: 20,
                     child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
+                        color: Colors.white, strokeWidth: 2),
                   )
                       : Text(_isEditMode ? 'Guardar cambios' : 'Publicar servicio'),
                 ),
@@ -340,7 +386,108 @@ class _CreateServiceScreenState extends State<CreateServiceScreen> {
   }
 }
 
-// ── Widget galería de imágenes ────────────────────────────────────────────────
+// ── Widget de ubicación ───────────────────────────────────────────────────────
+
+class _LocationSection extends StatelessWidget {
+  final TextEditingController addressController;
+  final double? latitude;
+  final double? longitude;
+  final bool isGettingLocation;
+  final bool isBusy;
+  final VoidCallback onGetLocation;
+  final VoidCallback onClearLocation;
+
+  const _LocationSection({
+    required this.addressController,
+    required this.latitude,
+    required this.longitude,
+    required this.isGettingLocation,
+    required this.isBusy,
+    required this.onGetLocation,
+    required this.onClearLocation,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasCoords = latitude != null && longitude != null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextFormField(
+          controller: addressController,
+          decoration: const InputDecoration(
+            labelText: 'Dirección / Ciudad (opcional)',
+            prefixIcon: Icon(Icons.location_on_outlined),
+          ),
+        ),
+        const SizedBox(height: 10),
+
+        // Botón GPS
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: isBusy ? null : onGetLocation,
+                icon: isGettingLocation
+                    ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+                    : const Icon(Icons.my_location, size: 18),
+                label: Text(
+                  isGettingLocation
+                      ? 'Obteniendo ubicación...'
+                      : 'Usar mi ubicación actual (GPS)',
+                  style: const TextStyle(fontSize: 13),
+                ),
+              ),
+            ),
+            if (hasCoords) ...[
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: onClearLocation,
+                icon: const Icon(Icons.close, color: Colors.red),
+                tooltip: 'Quitar coordenadas GPS',
+              ),
+            ],
+          ],
+        ),
+
+        // Indicador de coordenadas capturadas
+        if (hasCoords)
+          Container(
+            margin: const EdgeInsets.only(top: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.green.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.green.shade200),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.green.shade600, size: 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'GPS: ${latitude!.toStringAsFixed(5)}, ${longitude!.toStringAsFixed(5)}',
+                    style: TextStyle(
+                      color: Colors.green.shade700,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// ── Widget galería ────────────────────────────────────────────────────────────
 
 class _ImageGallerySection extends StatelessWidget {
   final List<String> imageUrls;
@@ -370,7 +517,6 @@ class _ImageGallerySection extends StatelessWidget {
           child: ListView(
             scrollDirection: Axis.horizontal,
             children: [
-              // Imágenes ya subidas
               ...imageUrls.asMap().entries.map((entry) {
                 final index = entry.key;
                 final url = entry.value;
@@ -394,7 +540,6 @@ class _ImageGallerySection extends StatelessWidget {
                           ),
                         ),
                       ),
-                      // Botón eliminar imagen
                       Positioned(
                         top: -6,
                         right: -6,
@@ -407,7 +552,8 @@ class _ImageGallerySection extends StatelessWidget {
                               color: Colors.red,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(Icons.close, color: Colors.white, size: 14),
+                            child: const Icon(Icons.close,
+                                color: Colors.white, size: 14),
                           ),
                         ),
                       ),
@@ -415,8 +561,6 @@ class _ImageGallerySection extends StatelessWidget {
                   ),
                 );
               }),
-
-              // Indicador de carga mientras sube
               if (isUploading)
                 Container(
                   width: 110,
@@ -428,8 +572,6 @@ class _ImageGallerySection extends StatelessWidget {
                   ),
                   child: const Center(child: CircularProgressIndicator()),
                 ),
-
-              // Botón agregar imagen
               if (imageUrls.length < 5 && !isUploading)
                 GestureDetector(
                   onTap: onAdd,
@@ -442,7 +584,6 @@ class _ImageGallerySection extends StatelessWidget {
                       border: Border.all(
                         color: AppTheme.primary.withValues(alpha: 0.4),
                         width: 1.5,
-                        strokeAlign: BorderSide.strokeAlignInside,
                       ),
                     ),
                     child: const Column(
