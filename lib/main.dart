@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:parcial/application/providers/chat_provider.dart';
 import 'package:provider/provider.dart';
 import 'app.dart';
 import 'application/providers/user_provider.dart';
@@ -22,6 +23,9 @@ void main() async {
         ),
         ChangeNotifierProvider(
           create: (_) => sl<image.ImageProvider>(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => sl<ChatProvider>(),
         ),
       ],
       child: const EmprendeApp(),

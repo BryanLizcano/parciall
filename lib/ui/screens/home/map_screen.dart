@@ -34,9 +34,14 @@ class MapScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const Positioned(top: 90, left: 80, child: _MapPin(label: 'Diseño')),
-                    const Positioned(top: 210, right: 70, child: _MapPin(label: 'Tutorías')),
-                    const Positioned(bottom: 100, left: 150, child: _MapPin(label: 'Soporte')),
+                    const Positioned(
+                        top: 90, left: 80, child: _MapPin(label: 'Diseño')),
+                    const Positioned(
+                        top: 210, right: 70, child: _MapPin(label: 'Tutorías')),
+                    const Positioned(
+                        bottom: 100,
+                        left: 150,
+                        child: _MapPin(label: 'Soporte')),
                   ],
                 ),
               ),
@@ -44,19 +49,22 @@ class MapScreen extends StatelessWidget {
             const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24)),
+              decoration: BoxDecoration(
+                  color: Colors.white, borderRadius: BorderRadius.circular(24)),
               child: const Row(
                 children: [
                   Icon(Icons.place_outlined),
                   SizedBox(width: 12),
-                  Expanded(child: Text('Zona seleccionada: Bogotá · Servicios cercanos visibles')),
+                  Expanded(
+                      child: Text(
+                          'Zona seleccionada: Bogotá · Servicios cercanos visibles')),
                 ],
               ),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: const CustomBottomNav(currentIndex: 2),
+      bottomNavigationBar: CustomBottomNav(currentIndex: 2),
     );
   }
 }
@@ -70,8 +78,12 @@ class _MapPin extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(color: const Color(0xFF4F46E5), borderRadius: BorderRadius.circular(999)),
-      child: Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+      decoration: BoxDecoration(
+          color: const Color(0xFF4F46E5),
+          borderRadius: BorderRadius.circular(999)),
+      child: Text(label,
+          style: const TextStyle(
+              color: Colors.white, fontWeight: FontWeight.w600)),
     );
   }
 }

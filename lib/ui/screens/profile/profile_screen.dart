@@ -55,7 +55,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Navigator.pushNamedAndRemoveUntil(
           context,
           WelcomeScreen.routeName,
-              (route) => false,
+          (route) => false,
         );
       }
     }
@@ -85,118 +85,119 @@ class _ProfileScreenState extends State<ProfileScreen> {
         body: userProvider.isLoading && user == null
             ? const Center(child: CircularProgressIndicator())
             : RefreshIndicator(
-          onRefresh: () => context.read<UserProvider>().loadOwnProfile(),
-          child: ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(28)),
-                child: Column(
+                onRefresh: () => context.read<UserProvider>().loadOwnProfile(),
+                child: ListView(
+                  padding: const EdgeInsets.all(20),
                   children: [
-                    CircleAvatar(
-                      radius: 42,
-                      backgroundImage: NetworkImage(
-                        user?.photoUrl != null && user!.photoUrl!.isNotEmpty
-                            ? user.photoUrl!
-                            : AppConstants.defaultProfileImage,
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    Text(
-                      user?.fullName ?? user?.username ?? 'Usuario',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 4),
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: user?.role == Role.entrepreneur
-                            ? const Color(0xFFEDE9FE)
-                            : const Color(0xFFDCFCE7),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        user?.role == Role.entrepreneur
-                            ? 'Emprendedor'
-                            : 'Cliente',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: user?.role == Role.entrepreneur
-                              ? const Color(0xFF7C3AED)
-                              : const Color(0xFF16A34A),
-                        ),
-                      ),
-                    ),
-                    if (user?.description != null &&
-                        user!.description!.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        user.description!,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ],
-                    const SizedBox(height: 6),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.location_on_outlined, size: 16),
-                        const SizedBox(width: 4),
-                        Text(user?.address ?? 'Ubicación no configurada'),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.pushNamed(
-                                context, EditProfileScreen.routeName),
-                            child: const Text('Editar perfil'),
-                          ),
-                        ),
-                        if (user?.role == Role.entrepreneur) ...[
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: FilledButton(
-                              onPressed: () => Navigator.pushNamed(
-                                  context, MyServicesScreen.routeName),
-                              child: const Text('Mis servicios'),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(28)),
+                      child: Column(
+                        children: [
+                          CircleAvatar(
+                            radius: 42,
+                            backgroundImage: NetworkImage(
+                              user?.photoUrl != null &&
+                                      user!.photoUrl!.isNotEmpty
+                                  ? user.photoUrl!
+                                  : AppConstants.defaultProfileImage,
                             ),
                           ),
+                          const SizedBox(height: 14),
+                          Text(
+                            user?.fullName ?? user?.username ?? 'Usuario',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: user?.role == Role.entrepreneur
+                                  ? const Color(0xFFEDE9FE)
+                                  : const Color(0xFFDCFCE7),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              user?.role == Role.entrepreneur
+                                  ? 'Emprendedor'
+                                  : 'Cliente',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: user?.role == Role.entrepreneur
+                                    ? const Color(0xFF7C3AED)
+                                    : const Color(0xFF16A34A),
+                              ),
+                            ),
+                          ),
+                          if (user?.description != null &&
+                              user!.description!.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              user.description!,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                          ],
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.location_on_outlined, size: 16),
+                              const SizedBox(width: 4),
+                              Text(user?.address ?? 'Ubicación no configurada'),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton(
+                                  onPressed: () => Navigator.pushNamed(
+                                      context, EditProfileScreen.routeName),
+                                  child: const Text('Editar perfil'),
+                                ),
+                              ),
+                              if (user?.role == Role.entrepreneur) ...[
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: FilledButton(
+                                    onPressed: () => Navigator.pushNamed(
+                                        context, MyServicesScreen.routeName),
+                                    child: const Text('Mis servicios'),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                         ],
-                      ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    _ProfileOption(
+                      icon: Icons.star_outline,
+                      title: 'Reseñas y calificaciones',
+                      onTap: () =>
+                          Navigator.pushNamed(context, ReviewsScreen.routeName),
+                    ),
+                    _ProfileOption(
+                        icon: Icons.settings_outlined,
+                        title: 'Preferencias',
+                        onTap: () {}),
+                    _ProfileOption(
+                        icon: Icons.help_outline, title: 'Ayuda', onTap: () {}),
+                    _ProfileOption(
+                      icon: Icons.logout,
+                      title: 'Cerrar sesión',
+                      color: Colors.red.shade600,
+                      onTap: _confirmLogout,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
-              _ProfileOption(
-                icon: Icons.star_outline,
-                title: 'Reseñas y calificaciones',
-                onTap: () =>
-                    Navigator.pushNamed(context, ReviewsScreen.routeName),
-              ),
-              _ProfileOption(
-                  icon: Icons.settings_outlined,
-                  title: 'Preferencias',
-                  onTap: () {}),
-              _ProfileOption(
-                  icon: Icons.help_outline, title: 'Ayuda', onTap: () {}),
-              _ProfileOption(
-                icon: Icons.logout,
-                title: 'Cerrar sesión',
-                color: Colors.red.shade600,
-                onTap: _confirmLogout,
-              ),
-            ],
-          ),
-        ),
-        bottomNavigationBar: const CustomBottomNav(currentIndex: 4),
+        bottomNavigationBar: CustomBottomNav(currentIndex: 4),
       ),
     );
   }

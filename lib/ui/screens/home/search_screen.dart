@@ -45,12 +45,13 @@ class SearchScreen extends StatelessWidget {
           // TODO: cargar con SearchServicesUseCase
           const ServiceCard(),
           const SizedBox(height: 16),
-          const ServiceCard(title: 'Clases de Matemáticas', category: 'Tutorías'),
+          const ServiceCard(
+              title: 'Clases de Matemáticas', category: 'Tutorías'),
           const SizedBox(height: 16),
           const ServiceCard(title: 'Soporte técnico', category: 'Tecnología'),
         ],
       ),
-      bottomNavigationBar: const CustomBottomNav(currentIndex: 1),
+      bottomNavigationBar: CustomBottomNav(currentIndex: 1),
     );
   }
 }

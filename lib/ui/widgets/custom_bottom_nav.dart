@@ -8,9 +8,9 @@ import '../screens/profile/profile_screen.dart';
 class CustomBottomNav extends StatelessWidget {
   final int currentIndex;
 
-  const CustomBottomNav({super.key, required this.currentIndex});
+  CustomBottomNav({super.key, required this.currentIndex});
 
-  static const List<String> _routes = [
+  final List<String> _routes = [
     HomeScreen.routeName,
     SearchScreen.routeName,
     MapScreen.routeName,
@@ -34,8 +34,10 @@ class CustomBottomNav extends StatelessWidget {
         NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Inicio'),
         NavigationDestination(icon: Icon(Icons.search), label: 'Buscar'),
         NavigationDestination(icon: Icon(Icons.map_outlined), label: 'Mapa'),
-        NavigationDestination(icon: Icon(Icons.chat_bubble_outline), label: 'Chat'),
-        NavigationDestination(icon: Icon(Icons.person_outline), label: 'Perfil'),
+        NavigationDestination(
+            icon: Icon(Icons.chat_bubble_outline), label: 'Chat'),
+        NavigationDestination(
+            icon: Icon(Icons.person_outline), label: 'Perfil'),
       ],
     );
   }

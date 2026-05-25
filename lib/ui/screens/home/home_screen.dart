@@ -66,9 +66,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   CircleAvatar(
                     radius: 24,
-                    backgroundImage: user?.photoUrl != null && user!.photoUrl!.isNotEmpty
-                        ? NetworkImage(user.photoUrl!)
-                        : null,
+                    backgroundImage:
+                        user?.photoUrl != null && user!.photoUrl!.isNotEmpty
+                            ? NetworkImage(user.photoUrl!)
+                            : null,
                     child: user?.photoUrl == null || user!.photoUrl!.isEmpty
                         ? const Icon(Icons.person)
                         : null,
@@ -114,7 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-        bottomNavigationBar: const CustomBottomNav(currentIndex: 0),
+        bottomNavigationBar: CustomBottomNav(currentIndex: 0),
       ),
     );
   }

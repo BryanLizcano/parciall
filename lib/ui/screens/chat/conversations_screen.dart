@@ -1,4 +1,4 @@
-// lib/ui/screens/chat/chat_list_screen.dart
+// lib/ui/screens/chat/conversations_screen.dart
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -6,19 +6,18 @@ import '../../../application/providers/chat_provider.dart';
 import '../../widgets/chat_tile.dart';
 import 'chat_room_screen.dart';
 
-class ChatListScreen extends StatefulWidget {
-  static const String routeName = '/chat-list';
-  const ChatListScreen({super.key});
+class ConversationsScreen extends StatefulWidget {
+  const ConversationsScreen({super.key});
 
   @override
-  State<ChatListScreen> createState() => _ChatListScreenState();
+  State<ConversationsScreen> createState() => _ConversationsScreenState();
 }
 
-class _ChatListScreenState extends State<ChatListScreen> {
+class _ConversationsScreenState extends State<ConversationsScreen> {
   @override
   void initState() {
     super.initState();
-    // HU-16: Cargamos las conversaciones reales del servidor al entrar a la pantalla
+    // HU-16: Cargar la lista de conversaciones al entrar
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ChatProvider>().loadConversations();
     });
@@ -26,7 +25,6 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Escuchamos los cambios en el provider del chat
     final chatProvider = context.watch<ChatProvider>();
 
     return Scaffold(
@@ -56,10 +54,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
                   child: ListView.builder(
                     itemCount: chatProvider.conversations.length,
                     itemBuilder: (context, index) {
-                      // 1. Aquí es donde definimos 'conversation' correctamente obteniéndola del provider
                       final conversation = chatProvider.conversations[index];
 
-                      // 2. Le pasamos el objeto al ChatTile con su respectivo evento para abrir el chat
+                      // Usamos tu widget personalizado 'ChatTile' pasándole la acción de navegación
                       return ChatTile(
                         conversation: conversation,
                         onTap: () {
@@ -72,7 +69,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                               ),
                             ),
                           ).then((_) {
-                            // Al regresar a la lista, refrescamos para actualizar los globos de mensajes leídos
+                            // Al regresar a la lista, refrescamos para actualizar contadores de no leídos
                             context.read<ChatProvider>().loadConversations();
                           });
                         },
