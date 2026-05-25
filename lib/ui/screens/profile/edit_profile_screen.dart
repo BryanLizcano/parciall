@@ -191,12 +191,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 CircleAvatar(
                   key: ValueKey(avatarUrl ?? 'default'),
                   radius: 46,
-                  backgroundImage: NetworkImage(
-                    avatarUrl ?? AppConstants.defaultProfileImage,
-                  ),
+                  // 1. Si hay url, se muestra la imagen. Si no, queda en null.
+                  backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+
                   child: isImageLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : null,
+                      : (avatarUrl == null
+                      ? const Icon(Icons.person, size: 46, color: Colors.grey) // Tu icono por defecto
+                      : null),
                 ),
                 if (avatarUrl != null)
                   CircleAvatar(

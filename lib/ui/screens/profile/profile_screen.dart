@@ -89,6 +89,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: ListView(
                   padding: const EdgeInsets.all(20),
                   children: [
+<<<<<<< HEAD
+=======
+                    CircleAvatar(
+                      radius: 42,
+                      backgroundImage: user?.photoUrl != null && user!.photoUrl!.isNotEmpty
+                          ? NetworkImage(user.photoUrl!)
+                          : null,
+
+                      child: user?.photoUrl == null || user!.photoUrl!.isEmpty
+                          ? const Icon(Icons.person, size: 42) // Ajusta el tamaño para que quede bien con el radius 42
+                          : null,
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      user?.fullName ?? user?.username ?? 'Usuario',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 6),
+>>>>>>> 08ca8d88840e97d7483c4410567c4263ca767c74
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
