@@ -1,6 +1,6 @@
-import 'package:parcial/domain/model/paged_result.dart';
-import 'package:parcial/domain/model/review.dart';
-import 'package:parcial/domain/model/review_summary.dart';
+import '../model/paged_result.dart';
+import '../model/review.dart';
+import '../model/review_summary.dart';
 
 abstract interface class ReviewRepository {
   /// HU-18: crea una reseña.

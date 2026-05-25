@@ -1,6 +1,6 @@
-import 'package:parcial/domain/model/chat_message.dart';
-import 'package:parcial/domain/model/conversation.dart';
-import 'package:parcial/domain/model/paged_result.dart';
+import '../model/chat_message.dart';
+import '../model/conversation.dart';
+import '../model/paged_result.dart';
 
 abstract interface class ChatRepository {
   /// HU-16: lista de conversaciones del usuario autenticado.

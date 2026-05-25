@@ -1,4 +1,4 @@
-import 'package:parcial/domain/model/role.dart';
+import 'role.dart';
 
 class User {
   final int id;

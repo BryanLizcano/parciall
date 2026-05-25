@@ -1,4 +1,4 @@
-import 'package:parcial/domain/model/category.dart';
+import '../model/category.dart';
 
 abstract interface class CategoryRepository {
   /// HU-15: listado de todas las categorías (endpoint público).

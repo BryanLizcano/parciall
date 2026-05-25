@@ -1,4 +1,4 @@
-import 'package:parcial/domain/model/role.dart';
+import 'role.dart';
 
 /// Lo que el back devuelve tras login o registro exitoso.
 /// El token se guarda en almacenamiento seguro; role decide la navegación.

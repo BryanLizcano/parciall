@@ -1,8 +1,8 @@
-import 'package:parcial/domain/model/map_marker.dart';
-import 'package:parcial/domain/model/paged_result.dart';
-import 'package:parcial/domain/model/service_post.dart';
-import 'package:parcial/domain/model/service_status.dart';
-import 'package:parcial/domain/model/service_summary.dart';
+import '../model/map_marker.dart';
+import '../model/paged_result.dart';
+import '../model/service_post.dart';
+import '../model/service_status.dart';
+import '../model/service_summary.dart';
 
 abstract interface class ServiceRepository {
   /// HU-07: publica un nuevo servicio.

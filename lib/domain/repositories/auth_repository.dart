@@ -1,7 +1,7 @@
 // lib/domain/repositories/auth_repository.dart
 
-import 'package:parcial/domain/model/auth_session.dart';
-import 'package:parcial/domain/model/role.dart';
+import '../model/auth_session.dart';
+import '../model/role.dart';
 
 /// Puerto de autenticación.
 /// La implementación concreta vive en infrastructure/repositories/.

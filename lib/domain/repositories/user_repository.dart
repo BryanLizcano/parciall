@@ -1,4 +1,4 @@
-import 'package:parcial/domain/model/user.dart';
+import '../model/user.dart';
 import '../model/entrepreneur_profile.dart';
 
 // Necesitamos importar el perfil público también

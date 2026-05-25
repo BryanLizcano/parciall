@@ -1,6 +1,6 @@
-import 'package:parcial/domain/model/category.dart';
-import 'package:parcial/domain/model/entrepreneur_summary.dart';
-import 'package:parcial/domain/model/service_status.dart';
+import 'category.dart';
+import 'entrepreneur_summary.dart';
+import 'service_status.dart';
 
 class ServicePost {
   final int id;

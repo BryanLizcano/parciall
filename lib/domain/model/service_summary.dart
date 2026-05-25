@@ -1,5 +1,5 @@
-import 'package:parcial/domain/model/category.dart';
-import 'package:parcial/domain/model/service_status.dart';
+import 'category.dart';
+import 'service_status.dart';
 
 class ServiceSummary {
   final int id;
