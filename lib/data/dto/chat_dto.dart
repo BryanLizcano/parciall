@@ -21,12 +21,13 @@ class SendMessageRequestDto {
 }
 
 /// DTO para mapear un mensaje individual desde el JSON del Backend (HU-17)
+/// DTO para mapear un mensaje individual desde el JSON del Backend (HU-17)
 class ChatMessageDto {
   final int id;
   final int senderId;
   final int receiverId;
   final String content;
-  final String timestamp; // O DateTime según maneje tu backend
+  final String timestamp;
   final bool isRead;
 
   ChatMessageDto({
@@ -40,12 +41,28 @@ class ChatMessageDto {
 
   factory ChatMessageDto.fromJson(Map<String, dynamic> json) {
     return ChatMessageDto(
-      id: json['id'] as int,
-      senderId: json['senderId'] as int,
-      receiverId: json['receiverId'] as int,
-      content: json['content'] as String,
-      timestamp: json['timestamp'] as String,
-      isRead: json['isRead'] as bool? ?? false,
+      //Convierte de forma segura a int por si viene como String o null
+      id: json['id'] is int
+          ? json['id'] as int
+          : int.tryParse(json['id']?.toString() ?? '') ?? 0,
+
+      senderId: json['senderId'] is int
+          ? json['senderId'] as int
+          : int.tryParse(json['senderId']?.toString() ?? '') ?? 0,
+
+      receiverId: json['receiverId'] is int
+          ? json['receiverId'] as int
+          : int.tryParse(json['receiverId']?.toString() ?? '') ?? 0,
+
+      //Si el contenido llega null por alguna razón, evitamos el crash usando un String vacío
+      content: json['content']?.toString() ?? '',
+
+      timestamp: json['timestamp']?.toString() ??
+          json['createdAt']?.toString() ??
+          json['created_at']?.toString() ??
+          DateTime.now().toIso8601String(),
+
+      isRead: json['isRead'] == true || json['isRead'] == 1,
     );
   }
 
@@ -57,9 +74,8 @@ class ChatMessageDto {
       receiverId: receiverId,
       content: content,
       isRead: isRead,
-      sentAt: DateTime.parse(
-          timestamp), // <- Mapeado al parámetro 'sentAt' requerido
-      // Si el senderId coincide con el id del usuario logueado, el mensaje es mío
+      sentAt: DateTime.tryParse(timestamp) ??
+          DateTime.now(), // 🛡️ Parseo tolerante
       isMine: currentUserId != null ? (senderId == currentUserId) : false,
     );
   }
