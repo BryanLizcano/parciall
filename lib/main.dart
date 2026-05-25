@@ -1,3 +1,5 @@
+// lib/main.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -6,6 +8,7 @@ import 'application/providers/auth_provider.dart';
 import 'application/providers/category_provider.dart';
 import 'application/providers/chat_provider.dart';
 import 'application/providers/image_provider.dart' as image;
+import 'application/providers/review_provider.dart';
 import 'application/providers/service_provider.dart';
 import 'application/providers/user_provider.dart';
 import 'injection.dart';
@@ -23,6 +26,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => sl<CategoryProvider>()),
         ChangeNotifierProvider(create: (_) => sl<ServiceProvider>()),
         ChangeNotifierProvider(create: (_) => sl<ChatProvider>()),
+        ChangeNotifierProvider(create: (_) => sl<ReviewProvider>()), // ← NUEVO
       ],
       child: const EmprendeApp(),
     ),

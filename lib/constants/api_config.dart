@@ -1,6 +1,6 @@
 class ApiConfig {
   // 1. Configuración de Red Centralizada
-  static const String _ip = '192.168.1.45';
+  static const String _ip = '192.168.1.3';
   static const String baseUrl = 'http://$_ip:8080';
 
   // Cabeceras comunes reutilizables

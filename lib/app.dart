@@ -9,6 +9,7 @@ import 'ui/screens/chat/chat_room_screen.dart';
 import 'ui/screens/home/home_screen.dart';
 import 'ui/screens/home/map_screen.dart';
 import 'ui/screens/home/search_screen.dart';
+import 'ui/screens/profile/create_review_screen.dart';
 import 'ui/screens/profile/edit_profile_screen.dart';
 import 'ui/screens/profile/profile_screen.dart';
 import 'ui/screens/profile/reviews_screen.dart';
@@ -27,21 +28,22 @@ class EmprendeApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Conecta Local',
       theme: AppTheme.lightTheme,
-      initialRoute: SplashScreen.routeName, // '/' apunta al splash
+      initialRoute: SplashScreen.routeName,
       routes: {
-        SplashScreen.routeName: (_) => const SplashScreen(),
-        WelcomeScreen.routeName: (_) => const WelcomeScreen(),
-        LoginScreen.routeName: (_) => const LoginScreen(),
-        RegisterScreen.routeName: (_) => const RegisterScreen(),
-        HomeScreen.routeName: (_) => const HomeScreen(),
-        SearchScreen.routeName: (_) => const SearchScreen(),
-        MapScreen.routeName: (_) => const MapScreen(),
-        ChatListScreen.routeName: (_) => const ChatListScreen(),
-        ProfileScreen.routeName: (_) => const ProfileScreen(),
+        SplashScreen.routeName:      (_) => const SplashScreen(),
+        WelcomeScreen.routeName:     (_) => const WelcomeScreen(),
+        LoginScreen.routeName:       (_) => const LoginScreen(),
+        RegisterScreen.routeName:    (_) => const RegisterScreen(),
+        HomeScreen.routeName:        (_) => const HomeScreen(),
+        SearchScreen.routeName:      (_) => const SearchScreen(),
+        MapScreen.routeName:         (_) => const MapScreen(),
+        ChatListScreen.routeName:    (_) => const ChatListScreen(),
+        ProfileScreen.routeName:     (_) => const ProfileScreen(),
         EditProfileScreen.routeName: (_) => const EditProfileScreen(),
-        MyServicesScreen.routeName: (_) => const MyServicesScreen(),
+        MyServicesScreen.routeName:  (_) => const MyServicesScreen(),
         CreateServiceScreen.routeName: (_) => const CreateServiceScreen(),
-        ReviewsScreen.routeName: (_) => const ReviewsScreen(),
+        ReviewsScreen.routeName:     (_) => const ReviewsScreen(),
+        CreateReviewScreen.routeName: (_) => const CreateReviewScreen(), // ← NUEVO
       },
       onGenerateRoute: (settings) {
         if (settings.name == ServiceDetailScreen.routeName) {
@@ -51,7 +53,6 @@ class EmprendeApp extends StatelessWidget {
         }
 
         if (settings.name == '/chat-room') {
-          // Extraemos los argumentos de forma segura si la llamas con Navigator.pushNamed
           final args = settings.arguments as Map<String, dynamic>;
           return MaterialPageRoute(
             builder: (_) => ChatRoomScreen(
@@ -60,6 +61,7 @@ class EmprendeApp extends StatelessWidget {
             ),
           );
         }
+
         return null;
       },
     );

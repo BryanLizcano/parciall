@@ -1,12 +1,18 @@
+// lib/ui/screens/services/service_detail_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../application/providers/auth_provider.dart';
+import '../../../application/providers/review_provider.dart';
 import '../../../application/providers/service_provider.dart';
 import '../../../domain/model/role.dart';
+import '../../../domain/model/service_status.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/rating_stars.dart';
 import '../../widgets/section_title.dart';
+import '../profile/create_review_screen.dart';
+import '../profile/reviews_screen.dart';
 
 class ServiceDetailScreen extends StatelessWidget {
   static const routeName = '/service-detail';
@@ -15,17 +21,15 @@ class ServiceDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final serviceProvider = context.watch<ServiceProvider>();
-    final authProvider = context.watch<AuthProvider>();
-    final service = serviceProvider.selectedService;
+    final authProvider   = context.watch<AuthProvider>();
+    final service        = serviceProvider.selectedService;
 
-    // Estado de carga
+    // ── Estado de carga ───────────────────────────────────────────────────
     if (serviceProvider.isLoading && service == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    // Error al cargar
+    // ── Error al cargar ───────────────────────────────────────────────────
     if (service == null) {
       return Scaffold(
         appBar: AppBar(),
@@ -38,7 +42,8 @@ class ServiceDetailScreen extends StatelessWidget {
                 Icon(Icons.error_outline, size: 56, color: Colors.red.shade300),
                 const SizedBox(height: 16),
                 Text(
-                  serviceProvider.errorMessage ?? 'No se pudo cargar el servicio.',
+                  serviceProvider.errorMessage ??
+                      'No se pudo cargar el servicio.',
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
@@ -53,14 +58,15 @@ class ServiceDetailScreen extends StatelessWidget {
       );
     }
 
+    final isClient    = authProvider.currentSession?.role == Role.client;
     final isOwnService =
         authProvider.currentSession?.username == service.entrepreneur.fullName;
-    final isClient = authProvider.currentSession?.role == Role.client;
+    final isActive = service.status == ServiceStatus.active;
 
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // ── Hero con carrusel de imágenes ──────────────────────────────
+          // ── Hero con carrusel de imágenes ─────────────────────────────
           SliverAppBar(
             expandedHeight: 280,
             pinned: true,
@@ -69,7 +75,8 @@ class ServiceDetailScreen extends StatelessWidget {
                   ? Container(
                 color: Colors.grey.shade200,
                 child: const Center(
-                  child: Icon(Icons.image_outlined, size: 60, color: Colors.grey),
+                  child: Icon(Icons.image_outlined,
+                      size: 60, color: Colors.grey),
                 ),
               )
                   : _ImageCarousel(imageUrls: service.imageUrls),
@@ -82,14 +89,15 @@ class ServiceDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ── Título + estado ──────────────────────────────────
+                  // ── Título + categoría ────────────────────────────────
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: Text(
                           service.title,
-                          style: Theme.of(context).textTheme.headlineMedium,
+                          style:
+                          Theme.of(context).textTheme.headlineMedium,
                         ),
                       ),
                       const SizedBox(width: 10),
@@ -97,8 +105,7 @@ class ServiceDetailScreen extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color:
-                          AppTheme.accent.withValues(alpha: 0.12),
+                          color: AppTheme.accent.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
@@ -114,12 +121,13 @@ class ServiceDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
 
-                  // ── Emprendedor ─────────────────────────────────────
+                  // ── Emprendedor ──────────────────────────────────────
                   Row(
                     children: [
                       CircleAvatar(
                         radius: 18,
-                        backgroundImage: service.entrepreneur.photoUrl != null
+                        backgroundImage:
+                        service.entrepreneur.photoUrl != null
                             ? NetworkImage(service.entrepreneur.photoUrl!)
                             : null,
                         child: service.entrepreneur.photoUrl == null
@@ -133,14 +141,27 @@ class ServiceDetailScreen extends StatelessWidget {
                           children: [
                             Text(
                               service.entrepreneur.fullName ?? 'Emprendedor',
-                              style: Theme.of(context).textTheme.titleMedium,
+                              style:
+                              Theme.of(context).textTheme.titleMedium,
                             ),
                             if (service.entrepreneur.averageRating != null)
                               RatingStars(
-                                rating: service.entrepreneur.averageRating!,
-                              ),
+                                  rating:
+                                  service.entrepreneur.averageRating!),
                           ],
                         ),
+                      ),
+                      // Botón ver reseñas del emprendedor
+                      TextButton(
+                        onPressed: () {
+                          context.read<ReviewProvider>().clearState();
+                          Navigator.pushNamed(
+                            context,
+                            ReviewsScreen.routeName,
+                            arguments: service.entrepreneur.id,
+                          );
+                        },
+                        child: const Text('Ver reseñas'),
                       ),
                     ],
                   ),
@@ -149,8 +170,8 @@ class ServiceDetailScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        const Icon(Icons.location_on_outlined, size: 16,
-                            color: AppTheme.textSecondary),
+                        const Icon(Icons.location_on_outlined,
+                            size: 16, color: AppTheme.textSecondary),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
@@ -164,7 +185,7 @@ class ServiceDetailScreen extends StatelessWidget {
 
                   const SizedBox(height: 20),
 
-                  // ── Descripción ─────────────────────────────────────
+                  // ── Descripción ──────────────────────────────────────
                   const SectionTitle(title: 'Descripción'),
                   const SizedBox(height: 10),
                   Container(
@@ -177,7 +198,7 @@ class ServiceDetailScreen extends StatelessWidget {
                     child: Text(service.description),
                   ),
 
-                  // ── Galería adicional (si hay más de 1 imagen) ──────
+                  // ── Galería adicional ─────────────────────────────────
                   if (service.imageUrls.length > 1) ...[
                     const SizedBox(height: 24),
                     const SectionTitle(title: 'Galería'),
@@ -207,52 +228,93 @@ class ServiceDetailScreen extends StatelessWidget {
 
                   const SizedBox(height: 28),
 
-                  // ── Precio + acción ─────────────────────────────────
+                  // ── Precio + acciones ─────────────────────────────────
                   Container(
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(24),
                     ),
-                    child: Row(
+                    child: Column(
                       children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Precio estimado',
-                                style:
-                                Theme.of(context).textTheme.bodyMedium,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Precio estimado',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    service.price != null
+                                        ? '\$${service.price!.toStringAsFixed(0)}'
+                                        : 'A convenir',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge,
+                                  ),
+                                ],
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                service.price != null
-                                    ? '\$${service.price!.toStringAsFixed(0)}'
-                                    : 'A convenir',
-                                style:
-                                Theme.of(context).textTheme.titleLarge,
-                              ),
-                            ],
-                          ),
-                        ),
-                        // El botón de contactar solo aparece si el usuario
-                        // es cliente (no puede chatear con sí mismo)
-                        if (!isOwnService)
-                          FilledButton.icon(
-                            onPressed: () {
-                              Navigator.pushNamed(
-                                context,
-                                '/chat-room',
-                                arguments: {
-                                  'partnerId': service.entrepreneur.id,
-                                  'partnerName': service.entrepreneur.fullName ?? 'Emprendedor',
+                            ),
+                            // Botón contactar (solo si no es el propio servicio)
+                            if (!isOwnService)
+                              FilledButton.icon(
+                                onPressed: () {
+                                  Navigator.pushNamed(
+                                    context,
+                                    '/chat-room',
+                                    arguments: {
+                                      'partnerId':
+                                      service.entrepreneur.id,
+                                      'partnerName':
+                                      service.entrepreneur.fullName ??
+                                          'Emprendedor',
+                                    },
+                                  );
                                 },
-                              );
-                            },
-                            icon: const Icon(Icons.chat_bubble_outline),
-                            label: const Text('Contactar'),
+                                icon: const Icon(
+                                    Icons.chat_bubble_outline),
+                                label: const Text('Contactar'),
+                              ),
+                          ],
+                        ),
+
+                        // ── Botón calificar (solo clientes, servicio activo) ──
+                        if (isClient && !isOwnService && isActive) ...[
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () async {
+                                final result = await Navigator.pushNamed(
+                                  context,
+                                  CreateReviewScreen.routeName,
+                                  arguments: {
+                                    'entrepreneurId':
+                                    service.entrepreneur.id,
+                                    'servicePostId': service.id,
+                                    'entrepreneurName':
+                                    service.entrepreneur.fullName ??
+                                        'Emprendedor',
+                                  },
+                                );
+                                // Si la reseña se envió (result == true),
+                                // actualizamos el detalle del servicio
+                                if (result == true && context.mounted) {
+                                  serviceProvider
+                                      .loadServiceDetail(service.id);
+                                }
+                              },
+                              icon: const Icon(Icons.star_outline),
+                              label: const Text('Calificar emprendedor'),
+                            ),
                           ),
+                        ],
                       ],
                     ),
                   ),
@@ -307,12 +369,12 @@ class _ImageCarouselState extends State<_ImageCarousel> {
             errorBuilder: (_, __, ___) => Container(
               color: Colors.grey.shade200,
               child: const Center(
-                child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
+                child: Icon(Icons.broken_image,
+                    size: 50, color: Colors.grey),
               ),
             ),
           ),
         ),
-        // Indicadores de página
         if (widget.imageUrls.length > 1)
           Positioned(
             bottom: 12,
