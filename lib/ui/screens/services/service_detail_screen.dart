@@ -7,7 +7,6 @@ import '../../../domain/model/role.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/rating_stars.dart';
 import '../../widgets/section_title.dart';
-import '../chat/chat_detail_screen.dart';
 
 class ServiceDetailScreen extends StatelessWidget {
   static const routeName = '/service-detail';
@@ -239,13 +238,16 @@ class ServiceDetailScreen extends StatelessWidget {
                         ),
                         // El botón de contactar solo aparece si el usuario
                         // es cliente (no puede chatear con sí mismo)
-                        if (isClient)
+                        if (!isOwnService)
                           FilledButton.icon(
                             onPressed: () {
                               Navigator.pushNamed(
                                 context,
-                                ChatDetailScreen.routeName,
-                                arguments: service.entrepreneur.id,
+                                '/chat-room',
+                                arguments: {
+                                  'partnerId': service.entrepreneur.id,
+                                  'partnerName': service.entrepreneur.fullName ?? 'Emprendedor',
+                                },
                               );
                             },
                             icon: const Icon(Icons.chat_bubble_outline),
