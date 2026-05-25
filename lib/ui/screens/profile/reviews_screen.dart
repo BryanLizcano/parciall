@@ -21,28 +21,36 @@ class ReviewsScreen extends StatefulWidget {
 class _ReviewsScreenState extends State<ReviewsScreen> {
   final _scrollController = ScrollController();
   int? _entrepreneurId;
+  bool _isInit = false; // 1. Bandera para controlar la inicialización
+
+  @override
+  void initState() {
+    super.initState();
+    // 2. Es más seguro agregar los listeners aquí, ya que corre UNA sola vez
+    _scrollController.addListener(_onScroll);
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    // El ID puede venir como argumento de ruta (al ver el perfil de otro) o
-    // lo tomamos del perfil propio si el emprendedor ve sus propias reseñas.
-    final args = ModalRoute.of(context)?.settings.arguments;
-    if (args is int) {
-      _entrepreneurId = args;
-    } else {
-      _entrepreneurId =
-          context.read<UserProvider>().ownProfile?.id;
-    }
+    // 3. Bloqueamos para que solo lea la ruta y haga la petición la primera vez
+    if (!_isInit) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is int) {
+        _entrepreneurId = args;
+      } else {
+        _entrepreneurId = context.read<UserProvider>().ownProfile?.id;
+      }
 
-    if (_entrepreneurId != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.read<ReviewProvider>().loadReviews(_entrepreneurId!);
-      });
-    }
+      if (_entrepreneurId != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context.read<ReviewProvider>().loadReviews(_entrepreneurId!);
+        });
+      }
 
-    _scrollController.addListener(_onScroll);
+      _isInit = true; // Sellamos la inicialización
+    }
   }
 
   void _onScroll() {
