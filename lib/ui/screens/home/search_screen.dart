@@ -26,12 +26,10 @@ class _SearchScreenState extends State<SearchScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Carga categorías (HU-15) y búsqueda inicial sin filtros
       context.read<CategoryProvider>().loadCategories();
       context.read<ServiceProvider>().searchServices();
     });
 
-    // Scroll infinito — carga más cuando llega al final (HU-13 CA-5)
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
           _scrollController.position.maxScrollExtent - 200) {
@@ -50,7 +48,6 @@ class _SearchScreenState extends State<SearchScreen> {
   void dispose() {
     _searchController.dispose();
     _scrollController.dispose();
-    // Limpiamos los resultados al salir para no mostrar datos viejos al regresar
     context.read<ServiceProvider>().clearSearchResults();
     super.dispose();
   }
@@ -102,7 +99,7 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
           ),
 
-          // ── Chips de categorías (HU-13 CA-1, HU-15) ───────────────────
+          // ── Chips de categorías ────────────────────────────────────────
           if (categoryProvider.categories.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 14),
@@ -111,7 +108,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: categoryProvider.categories.length + 1, // +1 para "Todos"
+                  itemCount: categoryProvider.categories.length + 1,
                   itemBuilder: (ctx, index) {
                     if (index == 0) {
                       final isAll = _selectedCategoryId == null;
@@ -156,16 +153,13 @@ class _SearchScreenState extends State<SearchScreen> {
           Expanded(
             child: Builder(
               builder: (_) {
-                if (serviceProvider.isLoading &&
-                    serviceProvider.searchResults.isEmpty) {
+                if (serviceProvider.isLoading && serviceProvider.searchResults.isEmpty) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                if (!serviceProvider.isLoading &&
-                    serviceProvider.searchResults.isEmpty) {
+                if (!serviceProvider.isLoading && serviceProvider.searchResults.isEmpty) {
                   return _EmptySearch(
-                    hasFilters: _selectedCategoryId != null ||
-                        _searchController.text.isNotEmpty,
+                    hasFilters: _selectedCategoryId != null || _searchController.text.isNotEmpty,
                     onClear: () {
                       _searchController.clear();
                       _search(resetCategory: true);
@@ -181,7 +175,6 @@ class _SearchScreenState extends State<SearchScreen> {
                   separatorBuilder: (_, __) => const SizedBox(height: 14),
                   itemBuilder: (ctx, index) {
                     if (index == serviceProvider.searchResults.length) {
-                      // Indicador de "cargando más"
                       return const Center(
                         child: Padding(
                           padding: EdgeInsets.all(20),
@@ -189,7 +182,6 @@ class _SearchScreenState extends State<SearchScreen> {
                         ),
                       );
                     }
-
                     final service = serviceProvider.searchResults[index];
                     return _SearchResultCard(
                       service: service,
@@ -203,38 +195,19 @@ class _SearchScreenState extends State<SearchScreen> {
               },
             ),
           ),
-<<<<<<< HEAD
-          const SizedBox(height: 24),
-          // TODO: cargar con SearchServicesUseCase
-          const ServiceCard(),
-          const SizedBox(height: 16),
-          const ServiceCard(
-              title: 'Clases de Matemáticas', category: 'Tutorías'),
-          const SizedBox(height: 16),
-          const ServiceCard(title: 'Soporte técnico', category: 'Tecnología'),
-=======
->>>>>>> 08ca8d88840e97d7483c4410567c4263ca767c74
         ],
       ),
-      bottomNavigationBar: CustomBottomNav(currentIndex: 1),
+      bottomNavigationBar: const CustomBottomNav(currentIndex: 1),
     );
   }
 }
-<<<<<<< HEAD
-=======
-
-// ── Chip de categoría tappable ────────────────────────────────────────────────
 
 class _CategoryChipButton extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
 
-  const _CategoryChipButton({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
+  const _CategoryChipButton({required this.label, required this.selected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -246,9 +219,7 @@ class _CategoryChipButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? AppTheme.primary : Colors.white,
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: selected ? AppTheme.primary : Colors.grey.shade300,
-          ),
+          border: Border.all(color: selected ? AppTheme.primary : Colors.grey.shade300),
         ),
         child: Text(
           label,
@@ -263,8 +234,6 @@ class _CategoryChipButton extends StatelessWidget {
   }
 }
 
-// ── Tarjeta de resultado de búsqueda ─────────────────────────────────────────
-
 class _SearchResultCard extends StatelessWidget {
   final ServiceSummary service;
   final VoidCallback onTap;
@@ -274,14 +243,12 @@ class _SearchResultCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final thumbnail = service.thumbnail;
-
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
         child: Row(
           children: [
-            // Thumbnail cuadrado
             SizedBox(
               width: 100,
               height: 100,
@@ -293,8 +260,6 @@ class _SearchResultCard extends StatelessWidget {
               )
                   : _PlaceholderThumb(),
             ),
-
-            // Info
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.all(12),
@@ -308,18 +273,12 @@ class _SearchResultCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      service.category.name,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
+                    Text(service.category.name, style: Theme.of(context).textTheme.bodyMedium),
                     if (service.entrepreneurName != null) ...[
                       const SizedBox(height: 2),
                       Text(
                         'por ${service.entrepreneurName}',
-                        style: TextStyle(
-                          color: AppTheme.textSecondary,
-                          fontSize: 12,
-                        ),
+                        style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -327,12 +286,9 @@ class _SearchResultCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        if (service.averageRating != null ||
-                            service.entrepreneurRating != null) ...[
+                        if (service.averageRating != null || service.entrepreneurRating != null) ...[
                           RatingStars(
-                            rating: service.averageRating ??
-                                service.entrepreneurRating ??
-                                0,
+                            rating: service.averageRating ?? service.entrepreneurRating ?? 0,
                           ),
                           const Spacer(),
                         ],
@@ -351,7 +307,6 @@ class _SearchResultCard extends StatelessWidget {
                 ),
               ),
             ),
-
             const Icon(Icons.chevron_right, color: Colors.grey),
             const SizedBox(width: 8),
           ],
@@ -372,8 +327,6 @@ class _PlaceholderThumb extends StatelessWidget {
     );
   }
 }
-
-// ── Estado vacío ──────────────────────────────────────────────────────────────
 
 class _EmptySearch extends StatelessWidget {
   final bool hasFilters;
@@ -400,10 +353,7 @@ class _EmptySearch extends StatelessWidget {
             ),
             if (hasFilters) ...[
               const SizedBox(height: 16),
-              TextButton(
-                onPressed: onClear,
-                child: const Text('Limpiar filtros'),
-              ),
+              TextButton(onPressed: onClear, child: const Text('Limpiar filtros')),
             ],
           ],
         ),
@@ -411,4 +361,3 @@ class _EmptySearch extends StatelessWidget {
     );
   }
 }
->>>>>>> 08ca8d88840e97d7483c4410567c4263ca767c74

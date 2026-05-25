@@ -30,16 +30,13 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<UserProvider>().loadOwnProfile();
       context.read<CategoryProvider>().loadCategories();
-      // Carga servicios destacados (sin filtros) al inicio
       context.read<ServiceProvider>().searchServices();
     });
   }
 
   void _filterByCategory(int? categoryId) {
     setState(() => _selectedCategoryId = categoryId);
-    context.read<ServiceProvider>().searchServices(
-      categoryId: categoryId,
-    );
+    context.read<ServiceProvider>().searchServices(categoryId: categoryId);
   }
 
   @override
@@ -85,8 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     CircleAvatar(
                       radius: 24,
-                      backgroundImage:
-                      user?.photoUrl != null && user!.photoUrl!.isNotEmpty
+                      backgroundImage: user?.photoUrl != null && user!.photoUrl!.isNotEmpty
                           ? NetworkImage(user.photoUrl!)
                           : null,
                       child: user?.photoUrl == null || user!.photoUrl!.isEmpty
@@ -97,10 +93,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // ── Buscador (redirige a SearchScreen) ────────────────────
+                // ── Buscador ──────────────────────────────────────────────
                 GestureDetector(
-                  onTap: () =>
-                      Navigator.pushNamed(context, SearchScreen.routeName),
+                  onTap: () => Navigator.pushNamed(context, SearchScreen.routeName),
                   child: AbsorbPointer(
                     child: TextField(
                       decoration: const InputDecoration(
@@ -109,26 +104,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-<<<<<<< HEAD
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundImage:
-                        user?.photoUrl != null && user!.photoUrl!.isNotEmpty
-                            ? NetworkImage(user.photoUrl!)
-                            : null,
-                    child: user?.photoUrl == null || user!.photoUrl!.isEmpty
-                        ? const Icon(Icons.person)
-                        : null,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              const TextField(
-                decoration: InputDecoration(
-                  prefixIcon: Icon(Icons.search),
-                  hintText: 'Buscar diseño, tutorías, reparaciones...',
-=======
->>>>>>> 08ca8d88840e97d7483c4410567c4263ca767c74
                 ),
                 const SizedBox(height: 24),
 
@@ -138,8 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (categoryProvider.isLoading)
                   const SizedBox(
                     height: 44,
-                    child: Center(
-                        child: CircularProgressIndicator(strokeWidth: 2)),
+                    child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
                   )
                 else if (categoryProvider.categories.isEmpty &&
                     categoryProvider.errorMessage != null)
@@ -150,8 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: TextStyle(color: Colors.red.shade600),
                       ),
                       TextButton(
-                        onPressed: () =>
-                            categoryProvider.loadCategories(force: true),
+                        onPressed: () => categoryProvider.loadCategories(force: true),
                         child: const Text('Reintentar'),
                       ),
                     ],
@@ -176,9 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         return _HomeCategoryChip(
                           label: cat.name,
                           selected: isSelected,
-                          onTap: () => _filterByCategory(
-                            isSelected ? null : cat.id,
-                          ),
+                          onTap: () => _filterByCategory(isSelected ? null : cat.id),
                         );
                       },
                     ),
@@ -188,17 +159,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 // ── Servicios destacados (HU-13) ──────────────────────────
                 SectionTitle(
-                  title: _selectedCategoryId == null
-                      ? 'Servicios destacados'
-                      : 'Resultados',
-                  actionLabel: serviceProvider.searchTotalElements > 0
-                      ? 'Ver todos'
-                      : null,
+                  title: _selectedCategoryId == null ? 'Servicios destacados' : 'Resultados',
+                  actionLabel: serviceProvider.searchTotalElements > 0 ? 'Ver todos' : null,
                 ),
                 const SizedBox(height: 16),
 
-                if (serviceProvider.isLoading &&
-                    serviceProvider.searchResults.isEmpty)
+                if (serviceProvider.isLoading && serviceProvider.searchResults.isEmpty)
                   const Center(
                     child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 40),
@@ -207,23 +173,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   )
                 else if (serviceProvider.searchResults.isEmpty)
                   _EmptyServices(
-                    onExplore: () =>
-                        Navigator.pushNamed(context, SearchScreen.routeName),
+                    onExplore: () => Navigator.pushNamed(context, SearchScreen.routeName),
                   )
                 else
-                  ...serviceProvider.searchResults
-                      .take(6) // El home muestra un preview de 6 resultados
-                      .map(
+                  ...serviceProvider.searchResults.take(6).map(
                         (service) => Padding(
                       padding: const EdgeInsets.only(bottom: 16),
                       child: _HomeServiceCard(
                         service: service,
                         onTap: () {
-                          context
-                              .read<ServiceProvider>()
-                              .loadServiceDetail(service.id);
-                          Navigator.pushNamed(
-                              context, ServiceDetailScreen.routeName);
+                          context.read<ServiceProvider>().loadServiceDetail(service.id);
+                          Navigator.pushNamed(context, ServiceDetailScreen.routeName);
                         },
                       ),
                     ),
@@ -232,8 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (serviceProvider.searchResults.length > 6)
                   Center(
                     child: TextButton(
-                      onPressed: () =>
-                          Navigator.pushNamed(context, SearchScreen.routeName),
+                      onPressed: () => Navigator.pushNamed(context, SearchScreen.routeName),
                       child: const Text('Ver todos los servicios →'),
                     ),
                   ),
@@ -241,26 +200,18 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ),
-        bottomNavigationBar: CustomBottomNav(currentIndex: 0),
+        bottomNavigationBar: const CustomBottomNav(currentIndex: 0),
       ),
     );
   }
 }
-<<<<<<< HEAD
-=======
-
-// ── Chip de categoría para el home ────────────────────────────────────────────
 
 class _HomeCategoryChip extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
 
-  const _HomeCategoryChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
+  const _HomeCategoryChip({required this.label, required this.selected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -272,9 +223,7 @@ class _HomeCategoryChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? AppTheme.primary : Colors.white,
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: selected ? AppTheme.primary : Colors.grey.shade300,
-          ),
+          border: Border.all(color: selected ? AppTheme.primary : Colors.grey.shade300),
         ),
         child: Text(
           label,
@@ -288,8 +237,6 @@ class _HomeCategoryChip extends StatelessWidget {
     );
   }
 }
-
-// ── Tarjeta de servicio del home ──────────────────────────────────────────────
 
 class _HomeServiceCard extends StatelessWidget {
   final ServiceSummary service;
@@ -307,7 +254,6 @@ class _HomeServiceCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Imagen
             SizedBox(
               height: 150,
               width: double.infinity,
@@ -329,7 +275,6 @@ class _HomeServiceCard extends StatelessWidget {
                 ),
               ),
             ),
-
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
               child: Column(
@@ -342,27 +287,20 @@ class _HomeServiceCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    service.category.name,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
+                  Text(service.category.name, style: Theme.of(context).textTheme.bodyMedium),
                   if (service.entrepreneurName != null) ...[
                     const SizedBox(height: 2),
                     Text(
                       'por ${service.entrepreneurName}',
-                      style: const TextStyle(
-                          color: AppTheme.textSecondary, fontSize: 12),
+                      style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                     ),
                   ],
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      if (service.averageRating != null ||
-                          service.entrepreneurRating != null)
+                      if (service.averageRating != null || service.entrepreneurRating != null)
                         RatingStars(
-                          rating: service.averageRating ??
-                              service.entrepreneurRating ??
-                              0,
+                          rating: service.averageRating ?? service.entrepreneurRating ?? 0,
                         ),
                       const Spacer(),
                       if (service.price != null)
@@ -385,8 +323,6 @@ class _HomeServiceCard extends StatelessWidget {
     );
   }
 }
-
-// ── Estado vacío ──────────────────────────────────────────────────────────────
 
 class _EmptyServices extends StatelessWidget {
   final VoidCallback onExplore;
@@ -417,4 +353,3 @@ class _EmptyServices extends StatelessWidget {
     );
   }
 }
->>>>>>> 08ca8d88840e97d7483c4410567c4263ca767c74
